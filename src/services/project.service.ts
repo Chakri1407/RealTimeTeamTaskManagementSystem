@@ -87,7 +87,7 @@ class ProjectService {
 
     const projects = await Project.find({ team: teamId })
       .populate('createdBy', 'name email')
-      .populate('team', 'name')
+      .populate('team', 'name description members')
       .sort({ createdAt: -1 });
 
     return projects;
@@ -104,7 +104,7 @@ class ProjectService {
     // Get all projects from those teams
     const projects = await Project.find({ team: { $in: teamIds } })
       .populate('createdBy', 'name email')
-      .populate('team', 'name')
+      .populate('team', 'name description members')
       .sort({ createdAt: -1 });
 
     return projects;
@@ -116,7 +116,7 @@ class ProjectService {
   async getProjectById(projectId: Types.ObjectId, userId: Types.ObjectId) {
     const project = await Project.findById(projectId)
       .populate('createdBy', 'name email')
-      .populate('team', 'name description');
+      .populate('team', 'name description members');
 
     if (!project) {
       throw new NotFoundError('Project not found');

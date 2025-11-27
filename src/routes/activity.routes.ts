@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { activityController } from '../controllers';
 import { authenticate, isTeamMember, isProjectMember } from '../middlewares';
 import { validateRequest } from '../middlewares/validate';
-import { MongoIdDto } from '../validators/common.validator';
+import { TeamIdDto, ProjectIdDto, TaskIdDto } from '../validators/common.validator';
 
 const router = Router();
 
@@ -37,7 +37,7 @@ router.get(
 router.get(
   '/teams/:teamId',
   authenticate,
-  validateRequest(MongoIdDto, 'params'),
+  validateRequest(TeamIdDto, 'params'),
   isTeamMember,
   activityController.getTeamActivity
 );
@@ -50,7 +50,7 @@ router.get(
 router.get(
   '/projects/:projectId',
   authenticate,
-  validateRequest(MongoIdDto, 'params'),
+  validateRequest(ProjectIdDto, 'params'),
   isProjectMember,
   activityController.getProjectActivity
 );
@@ -63,7 +63,7 @@ router.get(
 router.get(
   '/tasks/:taskId',
   authenticate,
-  validateRequest(MongoIdDto, 'params'),
+  validateRequest(TaskIdDto, 'params'),
   activityController.getTaskHistory
 );
 

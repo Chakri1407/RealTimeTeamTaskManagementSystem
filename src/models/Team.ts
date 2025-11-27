@@ -79,11 +79,12 @@ teamSchema.index({ createdBy: 1 });
 
 // Virtual for member count
 teamSchema.virtual('memberCount').get(function () {
-  return this.members.length;
+  return this.members ? this.members.length : 0;
 });
 
 // Instance method to check if user is a member
 teamSchema.methods.isMember = function (userId: mongoose.Types.ObjectId): boolean {
+  if (!this.members || !Array.isArray(this.members)) return false;
   return this.members.some(
     (member: ITeamMember) => member.user.toString() === userId.toString()
   );
@@ -91,6 +92,7 @@ teamSchema.methods.isMember = function (userId: mongoose.Types.ObjectId): boolea
 
 // Instance method to check if user is an admin
 teamSchema.methods.isAdmin = function (userId: mongoose.Types.ObjectId): boolean {
+  if (!this.members || !Array.isArray(this.members)) return false;
   return this.members.some(
     (member: ITeamMember) =>
       member.user.toString() === userId.toString() && member.role === UserRole.ADMIN
@@ -101,6 +103,7 @@ teamSchema.methods.isAdmin = function (userId: mongoose.Types.ObjectId): boolean
 teamSchema.methods.getUserRole = function (
   userId: mongoose.Types.ObjectId
 ): UserRole | null {
+  if (!this.members || !Array.isArray(this.members)) return null;
   const member = this.members.find(
     (m: ITeamMember) => m.user.toString() === userId.toString()
   );

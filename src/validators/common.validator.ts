@@ -55,4 +55,28 @@ export class TaskFilterDto extends PaginationDto {
 export class MongoIdDto {
   @IsString({ message: 'ID must be a string' })
   id!: string;
+}
+
+/**
+ * DTO for team ID parameter
+ */
+export class TeamIdDto {
+  @IsString({ message: 'Team ID must be a string' })
+  teamId!: string;
+}
+
+/**
+ * DTO for project ID parameter
+ */
+export class ProjectIdDto {
+  @IsString({ message: 'Project ID must be a string' })
+  projectId!: string;
+}
+
+/**
+ * DTO for task ID parameter
+ */
+export class TaskIdDto {
+  @IsString({ message: 'Task ID must be a string' })
+  taskId!: string;
 } 

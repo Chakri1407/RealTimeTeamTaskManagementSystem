@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"c:\\CN-Pro\\SoluLab\\Projects\\Realtimeteamtaskmanagement\" /s /b)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
