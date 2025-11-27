@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ITeam, ITeamMember } from '../types/interfaces';
+import { ITeam, ITeamMember, ITeamModel } from '../types/interfaces';
 import { UserRole } from '../types/enums';
 
 const teamMemberSchema = new Schema<ITeamMember>(
@@ -23,7 +23,7 @@ const teamMemberSchema = new Schema<ITeamMember>(
   { _id: false }
 );
 
-const teamSchema = new Schema<ITeam>(
+const teamSchema = new Schema<ITeam, ITeamModel>(
   {
     name: {
       type: String,
@@ -112,6 +112,6 @@ teamSchema.statics.findByUser = function (userId: mongoose.Types.ObjectId) {
   return this.find({ 'members.user': userId });
 };
 
-const Team = mongoose.model<ITeam>('Team', teamSchema);
+const Team = mongoose.model<ITeam, ITeamModel>('Team', teamSchema);
 
 export default Team; 

@@ -1,8 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
-import { ITask } from '../types/interfaces';
+import { ITask, ITaskModel } from '../types/interfaces';
 import { TaskStatus, TaskPriority } from '../types/enums';
 
-const taskSchema = new Schema<ITask>(
+const taskSchema = new Schema<ITask, ITaskModel>(
   {
     title: {
       type: String,
@@ -162,6 +162,6 @@ taskSchema.pre('deleteOne', { document: true, query: false }, async function () 
   await mongoose.model('ActivityLog').deleteMany({ task: this._id });
 });
 
-const Task = mongoose.model<ITask>('Task', taskSchema);
+const Task = mongoose.model<ITask, ITaskModel>('Task', taskSchema);
 
 export default Task; 

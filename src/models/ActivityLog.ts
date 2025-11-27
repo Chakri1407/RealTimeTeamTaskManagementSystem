@@ -1,8 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
-import { IActivityLog } from '../types/interfaces';
+import { IActivityLog, IActivityLogModel } from '../types/interfaces';
 import { ActivityAction } from '../types/enums';
 
-const activityLogSchema = new Schema<IActivityLog>(
+const activityLogSchema = new Schema<IActivityLog, IActivityLogModel>(
   {
     action: {
       type: String,
@@ -154,6 +154,6 @@ activityLogSchema.statics.getActivityByDateRange = function (
     .populate('task', 'title');
 };
 
-const ActivityLog = mongoose.model<IActivityLog>('ActivityLog', activityLogSchema);
+const ActivityLog = mongoose.model<IActivityLog, IActivityLogModel>('ActivityLog', activityLogSchema);
 
 export default ActivityLog; 

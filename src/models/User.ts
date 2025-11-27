@@ -1,9 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IUser } from '../types/interfaces';
+import { IUser, IUserModel } from '../types/interfaces';
 import { UserRole } from '../types/enums';
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<IUser, IUserModel>(
   {
     name: {
       type: String,
@@ -109,6 +109,6 @@ userSchema.statics.findByCredentials = async function (
   return user;
 };
 
-const User = mongoose.model<IUser>('User', userSchema);
+const User = mongoose.model<IUser, IUserModel>('User', userSchema);
 
 export default User; 

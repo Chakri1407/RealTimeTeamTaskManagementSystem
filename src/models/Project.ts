@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
-import { IProject } from '../types/interfaces';
+import { IProject, IProjectModel } from '../types/interfaces';
 
-const projectSchema = new Schema<IProject>(
+const projectSchema = new Schema<IProject, IProjectModel>(
   {
     name: {
       type: String,
@@ -104,6 +104,6 @@ projectSchema.pre('deleteOne', { document: true, query: false }, async function 
   await mongoose.model('ActivityLog').deleteMany({ project: this._id });
 });
 
-const Project = mongoose.model<IProject>('Project', projectSchema);
+const Project = mongoose.model<IProject, IProjectModel>('Project', projectSchema);
 
 export default Project; 

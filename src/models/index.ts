@@ -5,6 +5,6 @@ export { default as Project } from './Project';
 export { default as Task } from './Task';
 export { default as ActivityLog } from './Activitylog';
 
-// Export types
+// Export types 
 export * from '../types/interfaces';
 export * from '../types/enums'; 
