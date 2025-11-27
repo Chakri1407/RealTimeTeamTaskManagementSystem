@@ -3,10 +3,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
+import swaggerUi from 'swagger-ui-express';
 import config from './config/config';
 import routes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import logger from './utils/logger';
+import swaggerSpec from './docs/swagger';
 
 /**
  * Create and configure Express application
@@ -64,16 +66,38 @@ const createApp = (): Application => {
   }
 
   // ============================================================================
+  // API Documentation
+  // ============================================================================
+
+  // Swagger UI - API Documentation
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      explorer: true,
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Task Management API Docs',
+    })
+  );
+
+  // Swagger JSON endpoint
+  app.get('/api-docs.json', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+  });
+
+  // ============================================================================
   // API Routes
   // ============================================================================
 
   // Root endpoint
-  app.get('/', (req: Request, res: Response) => {
+  app.get('/', (_req: Request, res: Response) => {
     res.json({
       success: true,
       message: 'Real-Time Team Task Management API',
       version: '1.0.0',
       environment: config.env,
+      documentation: '/api-docs',
       endpoints: {
         health: '/api/health',
         auth: '/api/auth',
@@ -93,10 +117,10 @@ const createApp = (): Application => {
   // ============================================================================
 
   // 404 handler - Must be after all other routes
-  app.use('*', (req: Request, res: Response) => {
+  app.use('*', (_req: Request, res: Response) => {
     res.status(404).json({
       success: false,
-      message: `Route ${req.originalUrl} not found`,
+      message: 'Route not found',
     });
   });
 

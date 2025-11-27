@@ -8,7 +8,7 @@ import { ValidationError } from '../utils/errors';
  * Validates request body against a DTO class
  */
 export const validateRequest = (dtoClass: any, source: 'body' | 'query' | 'params' = 'body') => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       // Transform plain object to class instance
       const dtoInstance = plainToClass(dtoClass, req[source]);
@@ -49,7 +49,7 @@ export const validateMultiple = (validators: {
   query?: any;
   params?: any;
 }) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       const allErrors: any[] = [];
 

@@ -1,8 +1,10 @@
+import 'reflect-metadata';
 import http from 'http';
 import createApp from './app';
 import config from './config/config';
 import database from './database/database';
 import logger from './utils/logger';
+import { initializeSocket, closeSocket } from './socket';
 
 /**
  * Start the server
@@ -19,6 +21,10 @@ const startServer = async (): Promise<void> => {
     // Create HTTP server
     const server = http.createServer(app);
 
+    // Initialize Socket.IO
+    initializeSocket(server);
+    logger.info('✅ Socket.IO initialized');
+
     // Start listening
     server.listen(config.port, () => {
       logger.info('='.repeat(50));
@@ -27,6 +33,7 @@ const startServer = async (): Promise<void> => {
       logger.info(`Port: ${config.port}`);
       logger.info(`URL: http://localhost:${config.port}`);
       logger.info(`Health Check: http://localhost:${config.port}/api/health`);
+      logger.info(`WebSocket: ws://localhost:${config.port}`);
       logger.info('='.repeat(50));
     });
 
@@ -62,6 +69,10 @@ const startServer = async (): Promise<void> => {
         logger.info('HTTP server closed');
 
         try {
+          // Close Socket.IO connections
+          await closeSocket();
+          logger.info('Socket.IO server closed');
+
           // Close database connection
           await database.disconnect();
           logger.info('Database connection closed');

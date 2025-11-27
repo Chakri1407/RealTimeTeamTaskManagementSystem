@@ -97,7 +97,6 @@ router.post(
 router.delete(
   '/:id/members/:memberId',
   authenticate,
-  validateRequest(MongoIdDto, 'params'),
   isTeamAdmin,
   teamController.removeMember
 );
@@ -110,7 +109,6 @@ router.delete(
 router.patch(
   '/:id/members/:memberId/role',
   authenticate,
-  validateRequest(MongoIdDto, 'params'),
   validateRequest(UpdateMemberRoleDto),
   isTeamAdmin,
   teamController.updateMemberRole

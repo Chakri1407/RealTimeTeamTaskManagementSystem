@@ -18,7 +18,7 @@ declare global {
  * Verifies JWT token and attaches user to request
  */
 export const authenticate = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     // Get token from header
     const authHeader = req.headers.authorization;
     const token = jwt.extractTokenFromHeader(authHeader);
@@ -53,7 +53,7 @@ export const authenticate = asyncHandler(
  * Attaches user if token is valid, but doesn't throw error if no token
  */
 export const optionalAuthenticate = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const token = jwt.extractTokenFromHeader(authHeader);
 

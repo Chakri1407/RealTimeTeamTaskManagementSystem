@@ -11,17 +11,15 @@ export const errorHandler = (
   err: Error | ApiError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   let statusCode = 500;
   let message = 'Internal Server Error';
-  let isOperational = false;
 
   // Handle ApiError instances
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
     message = err.message;
-    isOperational = err.isOperational;
   }
 
   // Handle Mongoose validation errors
@@ -81,7 +79,7 @@ export const errorHandler = (
  */
 export const notFoundHandler = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   const error = new ApiError(404, `Route ${req.originalUrl} not found`);

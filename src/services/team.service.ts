@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { Team, User, ActivityLog } from '../models';
 import { NotFoundError, ForbiddenError, BadRequestError, ConflictError } from '../utils/errors';
 import { UserRole, ActivityAction } from '../types/enums';
+import { socketEmitter } from '../utils/socketEmitter';
 
 class TeamService {
   /**
@@ -33,6 +34,14 @@ class TeamService {
       user: createdBy,
       team: team._id,
       description: `Team "${name}" created`,
+    });
+
+    // Emit real-time event
+    socketEmitter.emitTeamCreated({
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: createdBy.toString(),
+      timestamp: new Date(),
     });
 
     return team;
@@ -98,6 +107,14 @@ class TeamService {
       description: `Team "${team.name}" updated`,
     });
 
+    // Emit real-time event
+    socketEmitter.emitTeamUpdated({
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: userId.toString(),
+      timestamp: new Date(),
+    });
+
     return team;
   }
 
@@ -128,6 +145,14 @@ class TeamService {
       user: userId,
       team: team._id,
       description: `Team "${team.name}" deleted`,
+    });
+
+    // Emit real-time event before deletion
+    socketEmitter.emitTeamDeleted({
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: userId.toString(),
+      timestamp: new Date(),
     });
 
     await team.deleteOne();
@@ -187,6 +212,16 @@ class TeamService {
       team: team._id,
       description: `${newMember.name} added to team "${team.name}"`,
       metadata: { newMemberId: newMemberId.toString(), role },
+    });
+
+    // Emit real-time event
+    socketEmitter.emitMemberAdded(team._id.toString(), {
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: newMemberId.toString(),
+      userName: newMember.name,
+      role,
+      timestamp: new Date(),
     });
 
     return team;
@@ -253,6 +288,15 @@ class TeamService {
       metadata: { removedMemberId: memberIdToRemove.toString() },
     });
 
+    // Emit real-time event
+    socketEmitter.emitMemberRemoved(team._id.toString(), memberIdToRemove.toString(), {
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: memberIdToRemove.toString(),
+      userName: removedUser?.name,
+      timestamp: new Date(),
+    });
+
     return team;
   }
 
@@ -308,6 +352,16 @@ class TeamService {
       team: team._id,
       description: `${updatedUser?.name} role changed to ${newRole} in team "${team.name}"`,
       metadata: { memberId: memberId.toString(), newRole },
+    });
+
+    // Emit real-time event
+    socketEmitter.emitMemberRoleChanged(team._id.toString(), {
+      teamId: team._id.toString(),
+      teamName: team.name,
+      userId: memberId.toString(),
+      userName: updatedUser?.name,
+      role: newRole,
+      timestamp: new Date(),
     });
 
     return team;

@@ -3,13 +3,12 @@ import { ForbiddenError, UnauthorizedError, NotFoundError } from '../utils/error
 import { Team, Project } from '../models';
 import { UserRole } from '../types/enums';
 import { asyncHandler } from '../utils/asyncHandler';
-import { Types } from 'mongoose';
 
 /**
  * Check if user has specific role
  */
 export const authorize = (...roles: UserRole[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }
@@ -26,12 +25,12 @@ export const authorize = (...roles: UserRole[]) => {
  * Check if user is a team member
  */
 export const isTeamMember = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }
 
-    const teamId = req.params.teamId || req.body.team;
+    const teamId = req.params.teamId || req.params.id || req.body.team;
 
     if (!teamId) {
       throw new ForbiddenError('Team ID required');
@@ -62,12 +61,12 @@ export const isTeamMember = asyncHandler(
  * Check if user is a team admin
  */
 export const isTeamAdmin = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }
 
-    const teamId = req.params.teamId || req.body.team;
+    const teamId = req.params.teamId || req.params.id || req.body.team;
 
     if (!teamId) {
       throw new ForbiddenError('Team ID required');
@@ -102,7 +101,7 @@ export const isTeamAdmin = asyncHandler(
  * Check if user is project member (via team membership)
  */
 export const isProjectMember = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }
@@ -113,16 +112,21 @@ export const isProjectMember = asyncHandler(
       throw new ForbiddenError('Project ID required');
     }
 
-    const project = await Project.findById(projectId).populate('team');
+    const project = await Project.findById(projectId);
 
     if (!project) {
       throw new NotFoundError('Project not found');
     }
 
-    const team = project.team as any;
+    // Fetch the team separately to get full document with members
+    const team = await Team.findById(project.team);
+
+    if (!team) {
+      throw new NotFoundError('Team not found');
+    }
 
     const isMember = team.members.some(
-      (member: any) => member.user.toString() === req.user._id.toString()
+      (member) => member.user.toString() === req.user._id.toString()
     );
 
     if (!isMember) {
@@ -140,7 +144,7 @@ export const isProjectMember = asyncHandler(
  * Check if user owns the resource
  */
 export const isOwner = (resourceUserField: string = 'createdBy') => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     if (!req.user) {
       throw new UnauthorizedError('Authentication required');
     }

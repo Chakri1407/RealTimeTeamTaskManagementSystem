@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
-import { Project, Team, ActivityLog } from '../models';
+import { Project, Team, ActivityLog, User } from '../models';
 import { NotFoundError, ForbiddenError } from '../utils/errors';
 import { ActivityAction } from '../types/enums';
+import { socketEmitter } from '../utils/socketEmitter';
 
 // Define project status type
 type ProjectStatus = 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
@@ -53,6 +54,18 @@ class ProjectService {
       team: teamId,
       project: project._id,
       description: `Project "${name}" created`,
+    });
+
+    // Emit real-time event
+    const creator = await User.findById(userId);
+    socketEmitter.emitProjectCreated({
+      projectId: project._id.toString(),
+      projectName: project.name,
+      teamId: teamId.toString(),
+      userId: userId.toString(),
+      userName: creator?.name || 'Unknown',
+      status: project.status,
+      timestamp: new Date(),
     });
 
     return project;
@@ -169,6 +182,18 @@ class ProjectService {
       description: `Project "${project.name}" updated`,
     });
 
+    // Emit real-time event
+    const updater = await User.findById(userId);
+    socketEmitter.emitProjectUpdated({
+      projectId: project._id.toString(),
+      projectName: project.name,
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: updater?.name || 'Unknown',
+      status: project.status,
+      timestamp: new Date(),
+    });
+
     return project;
   }
 
@@ -202,6 +227,17 @@ class ProjectService {
       team: project.team,
       project: project._id,
       description: `Project "${project.name}" deleted`,
+    });
+
+    // Emit real-time event before deletion
+    const deleter = await User.findById(userId);
+    socketEmitter.emitProjectDeleted({
+      projectId: project._id.toString(),
+      projectName: project.name,
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: deleter?.name || 'Unknown',
+      timestamp: new Date(),
     });
 
     await project.deleteOne();

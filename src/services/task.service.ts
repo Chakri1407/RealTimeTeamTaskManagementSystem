@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { Task, Project, Team, User, ActivityLog } from '../models';
 import { NotFoundError, ForbiddenError, BadRequestError } from '../utils/errors';
 import { TaskStatus, TaskPriority, ActivityAction } from '../types/enums';
+import { socketEmitter } from '../utils/socketEmitter';
 
 class TaskService {
   /**
@@ -62,6 +63,23 @@ class TaskService {
       project: projectId,
       task: task._id,
       description: `Task "${title}" created`,
+    });
+
+    // Emit real-time event
+    const creator = await User.findById(userId);
+    const assigneeUser = assignedTo ? await User.findById(assignedTo) : null;
+    socketEmitter.emitTaskCreated({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: projectId.toString(),
+      teamId: (project.team as Types.ObjectId).toString(),
+      userId: userId.toString(),
+      userName: creator?.name || 'Unknown',
+      assigneeId: assignedTo?.toString(),
+      assigneeName: assigneeUser?.name,
+      status: task.status,
+      priority: task.priority,
+      timestamp: new Date(),
     });
 
     return task;
@@ -214,6 +232,21 @@ class TaskService {
       description: `Task "${task.title}" updated`,
     });
 
+    // Emit real-time event
+    const updater = await User.findById(userId);
+    socketEmitter.emitTaskUpdated({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: project._id.toString(),
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: updater?.name || 'Unknown',
+      assigneeId: task.assignedTo?.toString(),
+      status: task.status,
+      priority: task.priority,
+      timestamp: new Date(),
+    });
+
     return task;
   }
 
@@ -261,6 +294,21 @@ class TaskService {
       task: task._id,
       description: `Task "${task.title}" status changed from ${oldStatus} to ${newStatus}`,
       metadata: { oldStatus, newStatus },
+    });
+
+    // Emit real-time event
+    const updater = await User.findById(userId);
+    socketEmitter.emitTaskStatusChanged({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: project._id.toString(),
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: updater?.name || 'Unknown',
+      assigneeId: task.assignedTo?.toString(),
+      status: newStatus,
+      previousStatus: oldStatus,
+      timestamp: new Date(),
     });
 
     return task;
@@ -318,6 +366,20 @@ class TaskService {
       },
     });
 
+    // Emit real-time event
+    const assigner = await User.findById(userId);
+    socketEmitter.emitTaskAssigned({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: project._id.toString(),
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: assigner?.name || 'Unknown',
+      assigneeId: assigneeId.toString(),
+      assigneeName: assignee.name,
+      timestamp: new Date(),
+    });
+
     return task;
   }
 
@@ -360,6 +422,19 @@ class TaskService {
       metadata: { previousAssignee: previousAssignee.toString() },
     });
 
+    // Emit real-time event
+    const unassigner = await User.findById(userId);
+    socketEmitter.emitTaskUnassigned({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: project._id.toString(),
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: unassigner?.name || 'Unknown',
+      previousAssigneeId: previousAssignee.toString(),
+      timestamp: new Date(),
+    });
+
     return task;
   }
 
@@ -399,6 +474,18 @@ class TaskService {
       project: project._id,
       task: task._id,
       description: `Task "${task.title}" deleted`,
+    });
+
+    // Emit real-time event before deletion
+    const deleter = await User.findById(userId);
+    socketEmitter.emitTaskDeleted({
+      taskId: task._id.toString(),
+      taskTitle: task.title,
+      projectId: project._id.toString(),
+      teamId: project.team.toString(),
+      userId: userId.toString(),
+      userName: deleter?.name || 'Unknown',
+      timestamp: new Date(),
     });
 
     await task.deleteOne();
