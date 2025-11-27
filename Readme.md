@@ -1,55 +1,216 @@
 # Real-Time Team Task Management System
 
-A production-ready task management system built with Node.js, TypeScript, MongoDB, and Socket.IO.
+An opinionated, production-ready task management API with real-time updates — built with Node.js, TypeScript, Express, MongoDB and Socket.IO.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Quick Start (Local)](#quick-start-local)
+- [Testing](#testing)
+- [API Documentation (Swagger)](#api-documentation-swagger)
+- [Deployment (Vercel)](#deployment-vercel)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
+
+This repository implements a Real-Time Team Task Management System API. It supports team and project management, task lifecycle with controlled status transitions, activity logging, and real-time notifications via Socket.IO. The project is fully typed with TypeScript and includes tests and Swagger documentation.
 
 ## Features
 
-- **User Authentication**: Secure JWT-based authentication with role-based access control
-- **Team Management**: Create teams, invite members, and manage team roles
-- **Project Management**: Organize work into projects within teams
-- **Task Management**: Full CRUD operations with task lifecycle management
-- **Real-Time Updates**: Live notifications using Socket.IO
-- **Activity Logging**: Track all actions and changes
-- **API Documentation**: Interactive Swagger/OpenAPI documentation
-- **Testing**: Comprehensive unit and integration tests
-- **Production Ready**: Deployed on Vercel with proper configurations
+- JWT-based authentication (access + refresh tokens)
+- Role-based access control for teams (admin / member)
+- Teams, Projects, Tasks CRUD with validations
+- Task lifecycle (To Do → In Progress → Review → Done)
+- Activity logging for audit trails
+- Real-time events via Socket.IO (project/task events)
+- Request validation via `class-validator`
+- Swagger/OpenAPI documentation
+- Jest tests with in-memory MongoDB for CI-friendly tests
 
 ## Tech Stack
 
-- **Backend**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Real-Time**: Socket.IO
-- **Authentication**: JWT (JSON Web Tokens)
-- **Validation**: class-validator & class-transformer
-- **Testing**: Jest & Supertest
-- **Documentation**: Swagger/OpenAPI
-- **Deployment**: Vercel
+- Node.js + TypeScript
+- Express
+- MongoDB + Mongoose
+- Socket.IO for real-time updates
+- class-validator / class-transformer for DTOs
+- Jest + Supertest for testing
+- Swagger (swagger-jsdoc + swagger-ui-express)
 
 ## Prerequisites
 
-- Node.js >= 18.0.0
-- MongoDB >= 6.0
-- npm >= 9.0.0
+- Node.js >= 18
+- npm >= 9
+- A running MongoDB instance (local or Atlas)
 
-## Installation
+---
 
-1. Clone the repository:
-```bash
+## Quick Start (Local)
+
+1. Clone and install:
+
+```powershell
 git clone <repository-url>
-cd task-management-system
-```
-
-2. Install dependencies:
-```bash
+cd Realtimeteamtaskmanagement
 npm install
 ```
 
-3. Set up environment variables:
-```bash
+2. Copy `.env` template and update values:
+
+```powershell
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env and set MONGODB_URI, JWT_SECRET, JWT_REFRESH_SECRET, etc.
 ```
+
+3. Run in development mode (uses nodemon + ts-node):
+
+```powershell
+npm run dev
+```
+
+4. Build and run production locally:
+
+```powershell
+npm run build
+npm start
+```
+
+The server runs by default on `http://localhost:5000` (see `PORT` in `.env`).
+
+---
+
+## Testing
+
+Run the test suite (uses mongodb-memory-server):
+
+```powershell
+npm test
+```
+
+For watching tests while developing:
+
+```powershell
+npm run test:watch
+```
+
+---
+
+## API Documentation (Swagger)
+
+Interactive API docs are available at:
+
+- Local: `http://localhost:5000/api-docs`
+- Production (replace with your deployment URL): `https://<your-vercel-app>.vercel.app/api-docs`
+
+Use the **Authorize** button in Swagger UI to add a bearer token for protected endpoints.
+
+---
+
+## Deployment (Vercel)
+
+This project includes `vercel.json` and steps to deploy to Vercel. High-level steps:
+
+1. Push your repository to GitHub.
+2. Create a MongoDB Atlas cluster and user; note the connection string.
+3. Import the repository into Vercel (`vercel.com/new`).
+4. Add environment variables in Vercel (see `.env.production` template):
+
+- `MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ALLOWED_ORIGINS`, `SOCKET_CORS_ORIGIN`, etc.
+
+5. Deploy and test the API; visit `/api-docs` on your Vercel URL to view Swagger.
+
+Detailed deployment instructions are provided in `VERCEL_DEPLOYMENT.md` and `DEPLOYMENT_CHECKLIST.md` in this repo.
+
+---
+
+## Screenshots
+
+Below are screenshots captured during local testing. The images are in the `ss/` folder of the repository.
+
+1. Auth register / login
+
+![Auth Register](/ss/Screenshot 2025-11-27 124515.png)
+
+2. Create Project (validation example)
+
+![Create Project Validation](/ss/Screenshot 2025-11-27 124901.png)
+
+3. Projects list & activity errors
+
+![Projects list error](/ss/Screenshot 2025-11-27 125142.png)
+
+4. Task status transition (validation)
+
+![Task status validation](/ss/Screenshot 2025-11-27 125318.png)
+
+5. Activity endpoints validation
+
+![Activity endpoints validation 1](/ss/Screenshot 2025-11-27 130341.png)
+![Activity endpoints validation 2](/ss/Screenshot 2025-11-27 130427.png)
+
+6. Port-in-use / nodemon output
+
+![Port in use](/ss/Screenshot 2025-11-27 131422.png)
+![Nodemon start](/ss/Screenshot 2025-11-27 131807.png)
+
+7. Socket.IO initialization logs
+
+![Socket IO init](/ss/Screenshot 2025-11-27 131954.png)
+
+8. Postman PATCH status error (transition flow)
+
+![Patch status error](/ss/Screenshot 2025-11-27 132347.png)
+
+9. Postman successful change / other logs
+
+![Postman success](/ss/Screenshot 2025-11-27 133026.png)
+![More logs](/ss/Screenshot 2025-11-27 134030.png)
+
+10. Additional debug screenshots
+
+![Debug 1](/ss/Screenshot 2025-11-27 135309.png)
+![Debug 2](/ss/Screenshot 2025-11-27 135351.png)
+![Debug 3](/ss/Screenshot 2025-11-27 135538.png)
+
+> Note: If images do not render on GitHub, ensure the `ss/` folder is included in your repository and filenames are exact (case-sensitive on Linux).
+
+---
+
+## Contributing
+
+Contributions are welcome. Typical workflow:
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feat/my-change`
+3. Make changes and tests
+4. Run `npm run build` and `npm test`
+5. Open a PR with a description of changes
+
+---
+
+## License
+
+This project is provided under the MIT License.
+
+---
+
+If you want, I can also:
+
+- Generate a ready-to-import Postman collection
+- Export a minimal Swagger JSON file for external use
+- Produce a short README section showing example cURL commands for each main endpoint
+
+Tell me which of the above you want next and I will add it.
+
 
 4. Start MongoDB (if running locally):
 ```bash
