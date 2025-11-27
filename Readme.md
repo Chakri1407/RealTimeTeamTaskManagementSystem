@@ -138,48 +138,48 @@ Below are screenshots captured during local testing. The images are in the `ss/`
 
 1. Auth register / login
 
-![Auth Register](/ss/Screenshot 2025-11-27 124515.png)
+![Auth Register](ss/Screenshot%202025-11-27%20124515.png)
 
 2. Create Project (validation example)
 
-![Create Project Validation](/ss/Screenshot 2025-11-27 124901.png)
+![Create Project Validation](ss/Screenshot%202025-11-27%20124901.png)
 
 3. Projects list & activity errors
 
-![Projects list error](/ss/Screenshot 2025-11-27 125142.png)
+![Projects list error](ss/Screenshot%202025-11-27%20125142.png)
 
 4. Task status transition (validation)
 
-![Task status validation](/ss/Screenshot 2025-11-27 125318.png)
+![Task status validation](ss/Screenshot%202025-11-27%20125318.png)
 
 5. Activity endpoints validation
 
-![Activity endpoints validation 1](/ss/Screenshot 2025-11-27 130341.png)
-![Activity endpoints validation 2](/ss/Screenshot 2025-11-27 130427.png)
+![Activity endpoints validation 1](ss/Screenshot%202025-11-27%20130341.png)
+![Activity endpoints validation 2](ss/Screenshot%202025-11-27%20130427.png)
 
 6. Port-in-use / nodemon output
 
-![Port in use](/ss/Screenshot 2025-11-27 131422.png)
-![Nodemon start](/ss/Screenshot 2025-11-27 131807.png)
+![Port in use](ss/Screenshot%202025-11-27%20131422.png)
+![Nodemon start](ss/Screenshot%202025-11-27%20131807.png)
 
 7. Socket.IO initialization logs
 
-![Socket IO init](/ss/Screenshot 2025-11-27 131954.png)
+![Socket IO init](ss/Screenshot%202025-11-27%20131954.png)
 
 8. Postman PATCH status error (transition flow)
 
-![Patch status error](/ss/Screenshot 2025-11-27 132347.png)
+![Patch status error](ss/Screenshot%202025-11-27%20132347.png)
 
 9. Postman successful change / other logs
 
-![Postman success](/ss/Screenshot 2025-11-27 133026.png)
-![More logs](/ss/Screenshot 2025-11-27 134030.png)
+![Postman success](ss/Screenshot%202025-11-27%20133026.png)
+![More logs](ss/Screenshot%202025-11-27%20134030.png)
 
 10. Additional debug screenshots
 
-![Debug 1](/ss/Screenshot 2025-11-27 135309.png)
-![Debug 2](/ss/Screenshot 2025-11-27 135351.png)
-![Debug 3](/ss/Screenshot 2025-11-27 135538.png)
+![Debug 1](ss/Screenshot%202025-11-27%20135309.png)
+![Debug 2](ss/Screenshot%202025-11-27%20135351.png)
+![Debug 3](ss/Screenshot%202025-11-27%20135538.png)
 
 > Note: If images do not render on GitHub, ensure the `ss/` folder is included in your repository and filenames are exact (case-sensitive on Linux).
 
