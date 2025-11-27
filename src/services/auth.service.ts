@@ -1,128 +1,158 @@
-import jwt from 'jsonwebtoken';
-import config from '../config/config';
 import { Types } from 'mongoose';
+import { User, ActivityLog } from '../models';
+import { UnauthorizedError, ConflictError, BadRequestError } from '../utils/errors';
+import jwtUtil from '../utils/jwt';
+import type { TokenPair } from '../utils/jwt';
+import { ActivityAction } from '../types/enums';
 
-export interface JwtPayload {
-  userId: string;
-  email: string;
-  role: string;
-}
-
-export interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-}
-
-class JwtUtil {
+class AuthService {
   /**
-   * Generate access token
+   * Register a new user
    */
-  generateAccessToken(userId: Types.ObjectId, email: string, role: string): string {
-    const payload: JwtPayload = {
-      userId: userId.toString(),
-      email,
-      role,
+  async register(name: string, email: string, password: string): Promise<{
+    user: {
+      id: Types.ObjectId;
+      name: string;
+      email: string;
+      role: string;
     };
+    tokens: TokenPair;
+  }> {
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new ConflictError('Email already registered');
+    }
 
-    return jwt.sign(payload, config.jwt.secret, {
-      expiresIn: config.jwt.expiresIn,
-    } as any);
-  }
-
-  /**
-   * Generate refresh token
-   */
-  generateRefreshToken(userId: Types.ObjectId, email: string, role: string): string {
-    const payload: JwtPayload = {
-      userId: userId.toString(),
+    // Create user
+    const user = await User.create({
+      name,
       email,
-      role,
-    };
+      password,
+    });
 
-    return jwt.sign(payload, config.jwt.refreshSecret, {
-      expiresIn: config.jwt.refreshExpiresIn,
-    } as any);
-  }
+    // Generate tokens
+    const tokens = jwtUtil.generateTokenPair(user._id, user.email, user.role);
 
-  /**
-   * Generate both access and refresh tokens
-   */
-  generateTokenPair(userId: Types.ObjectId, email: string, role: string): TokenPair {
+    // Log activity
+    await ActivityLog.createLog({
+      action: ActivityAction.USER_REGISTERED,
+      user: user._id,
+      description: `User ${user.name} registered`,
+    });
+
     return {
-      accessToken: this.generateAccessToken(userId, email, role),
-      refreshToken: this.generateRefreshToken(userId, email, role),
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      tokens,
     };
   }
 
   /**
-   * Verify access token
+   * Login user
    */
-  verifyAccessToken(token: string): JwtPayload {
+  async login(email: string, password: string): Promise<{
+    user: {
+      id: Types.ObjectId;
+      name: string;
+      email: string;
+      role: string;
+    };
+    tokens: TokenPair;
+  }> {
+    // Find user with password
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    // Check password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    // Generate tokens
+    const tokens = jwtUtil.generateTokenPair(user._id, user.email, user.role);
+
+    // Log activity
+    await ActivityLog.createLog({
+      action: ActivityAction.USER_LOGIN,
+      user: user._id,
+      description: `User ${user.name} logged in`,
+    });
+
+    return {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      tokens,
+    };
+  }
+
+  /**
+   * Refresh access token
+   */
+  async refreshToken(refreshToken: string) {
     try {
-      const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
-      return decoded;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new Error('Token expired');
+      // Verify refresh token
+      const decoded = jwtUtil.verifyRefreshToken(refreshToken);
+
+      // Find user
+      const user = await User.findById(decoded.userId);
+      if (!user) {
+        throw new UnauthorizedError('User not found');
       }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new Error('Invalid token');
-      }
-      throw new Error('Token verification failed');
+
+      // Generate new access token
+      const accessToken = jwtUtil.generateAccessToken(user._id, user.email, user.role);
+
+      return {
+        accessToken,
+      };
+    } catch (error: any) {
+      throw new UnauthorizedError(error.message || 'Invalid refresh token');
     }
   }
 
   /**
-   * Verify refresh token
+   * Get current user profile
    */
-  verifyRefreshToken(token: string): JwtPayload {
-    try {
-      const decoded = jwt.verify(token, config.jwt.refreshSecret) as JwtPayload;
-      return decoded;
-    } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) {
-        throw new Error('Refresh token expired');
-      }
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new Error('Invalid refresh token');
-      }
-      throw new Error('Refresh token verification failed');
+  async getProfile(userId: Types.ObjectId) {
+    const user = await User.findById(userId).populate('teams', 'name description');
+
+    if (!user) {
+      throw new BadRequestError('User not found');
     }
+
+    return user;
   }
 
   /**
-   * Decode token without verification (for debugging)
+   * Update user profile
    */
-  decodeToken(token: string): JwtPayload | null {
-    try {
-      return jwt.decode(token) as JwtPayload;
-    } catch (error) {
-      return null;
-    }
-  }
+  async updateProfile(userId: Types.ObjectId, updates: { name?: string }) {
+    const user = await User.findById(userId);
 
-  /**
-   * Get token from Authorization header
-   */
-  extractTokenFromHeader(authHeader?: string): string | null {
-    if (!authHeader) {
-      return null;
+    if (!user) {
+      throw new BadRequestError('User not found');
     }
 
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      return null;
+    if (updates.name) {
+      user.name = updates.name;
     }
 
-    return parts[1];
+    await user.save();
+
+    return user;
   }
 }
 
-// Create instance
-const jwtUtil = new JwtUtil();
-
-// Export as default
-export default jwtUtil;
-
-// Also export the instance as a named export for consistency
-export { jwtUtil }; 
+export default new AuthService(); 
